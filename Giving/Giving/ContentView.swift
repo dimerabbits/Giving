@@ -9,10 +9,12 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var progress = 0.1
-    @State private var current = 20_000
+    @State private var current = 20_000.0
     @State private var total = 1.0
     @State private var showingAlert = false
-
+    
+    let localCurrency: FloatingPointFormatStyle<Double>.Currency = .currency(code: Locale.current.currencyCode ?? "USD")
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             AsyncImage(url: URL(string: "https://thewaterproject.org/images/twp-resp-logo.png")) { image in
@@ -22,16 +24,20 @@ struct ContentView: View {
             }
             .frame(width: 300, height: 130)
             .clipShape(RoundedRectangle(cornerRadius: 10))
-
-            Text("**The Water Project**").font(.title2)
-            Text("**Description**")
-            Text("The Water Project, Inc. is a 501(c)(3) non-profit organization unlocking human potential by providing reliable water projects to communities in sub-Saharan Africa who suffer needlessly from a lack of access to clean water and proper sanitation. For ten years, we have been helpingcommunities gain access to clean, safe water by providing training, expertise and financial support for water project construction through our staff and implementing partners.")
-
+            
+            ForEach(Client.allClients) { client in
+                Text(client.title)
+                    .font(.title2.bold())
+                    .foregroundColor(.accentColor)
+                Text("**Description**")
+                Text(client.description)
+            }
+            
             Spacer()
-
+            
             GroupBox {
                 ProgressView(value: progress, label: {
-                    Text("**$\(current)** raised")
+                    Text("**\(current, format: localCurrency)** raised")
                         .font(.title2)
                         .foregroundColor(.accentColor)
                 }, currentValueLabel: {
@@ -39,12 +45,12 @@ struct ContentView: View {
                         .foregroundColor(.accentColor)
                 })
                     .tint(.accentColor)
-
+                
                 Button("Give Now!", action: {
-                    if progress < 1.0 {
+                    if progress <= 1.0 {
                         withAnimation {
                             progress += 0.1
-                            current += Int(Double(20_000))
+                            current += 20_000.0
                         }
                         showingAlert = true
                     }
@@ -55,10 +61,7 @@ struct ContentView: View {
                     ) {
                         Button("OK", role: .cancel) { }
                     }
-                    .font(.title3.bold())
-                    .frame(maxWidth: .infinity, maxHeight: 44)
-                    .background(Color.accentColor.opacity(0.5))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .giveButton()
             }
         }
         .padding()
